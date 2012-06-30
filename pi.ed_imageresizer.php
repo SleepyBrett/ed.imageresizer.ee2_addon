@@ -56,6 +56,8 @@ Class Ed_imageresizer
     private $href_only          = '';       // only return the path to the file, not the full tag.
     private $ext                = '';
     private $grayscale          = '';
+    private $cropstart          = '';       // tl, tc, tr, cl, cc, cr, bl, bc, br
+
     
     // ADD PATHS TO YOUR WEB ROOT AND CACHE FOLDER HERE
     private $server_path        = ''; // no trailing slash
@@ -88,6 +90,9 @@ Class Ed_imageresizer
         $this->href_only      = $this->EE->TMPL->fetch_param('href_only');
         $this->debug          = $this->EE->TMPL->fetch_param('debug') != 'yes' ? false : true;
         $this->grayscale      = $this->EE->TMPL->fetch_param('grayscale') != 'yes' ? false : true;
+        $this->cropstart      = $this->EE->TMPL->fetch_param('cropstart');
+
+        if ($this->cropstart == '') { $this->cropstart = 'cc'; }
 
         /**
          * Load in cache path and server path from config if they exist
@@ -199,7 +204,7 @@ Class Ed_imageresizer
         }
     
         // generate cached filename
-        $this->resized = $this->cache_path . sha1($this->image . $this->forceWidth . $this->forceHeight . $this->color . $this->maxWidth . $this->maxHeight . $this->cropratio . $this->grayscale).$this->ext;
+        $this->resized = $this->cache_path . sha1($this->image . $this->forceWidth . $this->forceHeight . $this->color . $this->maxWidth . $this->maxHeight . $this->cropratio . $this->grayscale . $this->cropstart).$this->ext;
         $cached_info = get_file_info($this->resized);
         $cached_mtime = $cached_info['date'];
 
@@ -258,13 +263,32 @@ Class Ed_imageresizer
                 // Image is too tall so we will crop the top and bottom
                 $this->origHeight       = $this->height;
                 $this->height           = $this->width / $this->cropRatioComputed;
-                $this->offsetY          = ($this->origHeight - $this->height) / 2;
+                switch(strtolower(substr($this->cropstart, 0, 1))) {
+                    case 't':
+                        $this->offsetY          = 0;
+                        break;
+                    case 'b':
+                        $this->offsetY          = ($this->origHeight - $this->height);
+                        break;
+                    default:
+                        $this->offsetY          = ($this->origHeight - $this->height) / 2;
+                        break;
+                }
             } else if ($this->ratioComputed > $this->cropRatioComputed) {
                 // Image is too wide so we will crop off the left and right sides
                 $this->origWidth    = $this->width;
                 $this->width        = $this->height * $this->cropRatioComputed;
-                $this->offsetX      = ($this->origWidth - $this->width) / 2;
-            }
+                switch(strtolower(substr($this->cropstart, 1, 1))) {
+                    case 'l':
+                        $this->offsetX      = 0;
+                        break;
+                    case 'r':
+                        $this->offsetX      = ($this->origWidth - $this->width);
+                        break;
+                    default:
+                        $this->offsetX      = ($this->origWidth - $this->width) / 2;
+                        break;
+                }            }
         }
     }
     
@@ -454,6 +478,7 @@ Paramaters:
 * forceWidth    ~ scale up if required accepts "yes" or "no"
 * forceHeight   ~ scale up if required accepts "yes" or "no"
 * cropratio     ~ eg: square is 1:1
+* cropstart     ~ where to start the crop using two letter codes (tl, tc, tr, cl, cc, cr, bl, bc, br) defaults to 'cc'
 * default       ~ the default image to use if there is no actual image
 * alt           ~ alt text
 * class         ~ img tag class
