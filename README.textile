@@ -20,6 +20,7 @@ h3. Parameters
 * @forceWidth@ (boolean "yes" or "no", default "no") : will force the width, even if the original's width is less
 * @forceHeight@ (boolean "yes" or "no", default "no") : will force the height, even if the original's height is less
 * @cropratio@ (string format "integer:integer") : crops the image to the defined ratio
+* @cropstart@ (string format "tl" for top left) : where to start the crop using two letter codes (tl, tc, tr, cl, cc, cr, bl, bc, br) defaults to 'cc'
 * @default@ (string) : a backup image to use if the @image@ is not found
 * @alt@ (string) : an alt tag for the image
 * @class@ (string) : a class for the image tag
